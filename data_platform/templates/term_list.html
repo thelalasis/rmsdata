@@ -1,0 +1,227 @@
+{% load static %}
+{% include "head.html" %}
+
+<div class="ui invisible inverted left vertical sidebar menu">
+        <a class="item">
+            <img class="ui avatar image" src="{% static 'images/icons/imac.svg' %}">
+          &#8195;&#8194;监控面板
+        </a>
+        <a class="item">
+            <img class="ui avatar image" src="{% static 'images/icons/clipboard.svg' %}">
+          &#8195;&#8194;问题管理
+        </a>
+        <div class="item">
+            <img class="ui avatar image" src="{% static 'images/icons/goal.svg' %}">
+              &#8195;&#8194;我的任务
+            <div class="menu">
+                  <a class="item">&#8195;&#8195;&#8195;&#8195;&#8195;待处理的任务</a>
+                  <a class="item">&#8195;&#8195;&#8195;&#8195;&#8195;已处理的任务</a>
+            </div>
+        </div>
+</div>
+
+<div class="ui main container">
+    <div class="column">
+      <div class="pusher">
+           <div class="ui container">
+           <div class="ui labeled icon button">
+            <i class = "sidebar icon"></i>
+            Menu
+           </div>
+           </div>
+        </div>
+            <div class="left item">
+                <h3 class = "header">事故调查表</h3>
+            </div>
+    </div>
+    <div class="ui bottom attached segment pushable">
+      
+      <div class="pusher">
+        <div class="ui basic segment">
+            <button class="ui new blue button">
+                <span style="font-size: 1em; color: white;">
+                  <i class="fas fa-edit"></i>
+                </span>
+              &#8194;新建
+            </button>
+            <button class="ui renewal button">
+                <span style="font-size: 1em; color: white;">
+                    <i class="fas fa-redo"></i>
+                </span>
+              &#8194;刷新
+            </button>
+            <button class="ui download button">
+                <span style="font-size: 1em; color: white;">
+                    <i class="fas fa-angle-double-down"></i>
+                </span>
+              &#8194;下载
+            </button>
+          <table id="event" class="ui striped table">
+              <thead>
+              <tr>
+                <th>术语</th>
+                <th>适用机型</th>
+                <th>术语说明</th>
+              </tr>
+              </thead>
+              <tfoot>
+              <tr>
+                <th>术语</th>
+                <th>适用机型</th>
+                <th>术语说明</th>
+              </tr>
+              </tfoot>
+              <tbody>
+                  {% for term in term_list %}
+                      <tr>
+                        <td><a class="text-dark" href="{% url 'data_platform:term_detail' term.id %}">{{term.title}}</a></td>
+                        <td>{{term.acmodel}}</td>
+                        <td>{{term.content | striptags |truncatewords:20}}</td>
+                      </tr>
+                  {% endfor %}
+              </tbody>
+
+          </table>
+            
+          <p>
+            <button id="addRow">添加行</button>
+            <button id="delRow">删除选中的行</button>
+          </p>
+        
+        </div>
+      </div>
+    </div>    
+</div>
+
+
+<script type="text/javascript" charset="utf8" src="http://cdn.datatables.net/1.10.15/js/jquery.dataTables.js"></script>
+    <!--增删行列-->
+    <!--增加行-->
+    <script type="text/javascript">
+      $(document).ready(function(){
+        var table = $('#event').DataTable(); 
+        i = table.rows.length;//或i=0;
+        i++;//i指数据库的数据条数
+        $('#addRow').on('click', function(){
+            table.row.add([
+            '<td><input type="Text" id="txt1' + i + '"/></td>',
+            '<td><input type="Text" id="txt2' + i + '"/></td>',
+            '<td><input type="Text" id="txt3' + i + '"/></td>'
+            ]).draw();
+        });
+      });
+   </script>
+        
+    <!--删除行-->
+    <script type="text/javascript">
+      $(document).ready(function(){
+        var table = $('#event').DataTable(); 
+        $('#event tbody').on('click','tr', function(){
+            if ($(this).hasClass('selected')){
+                $(this).removeClass('selected');
+            }
+            else{
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+            }
+        });
+        $('#delRow').click(function(){
+            table.row('.selected').remove().draw(false);
+        });
+      });
+    </script>
+    
+    <!--分列查找内容-->
+    <script type="text/javascript">
+        $(document).ready(function() {
+            // Setup - add a text input to each footer cell
+            $('#event tfoot th').each( function () {
+                var title = $('#event thead th').eq( $(this).index() ).text();
+                $(this).html( '<input type="text" placeholder="Search '+title+'" />' );
+            });
+
+            // DataTable
+            var table = $('#event').DataTable();
+
+            // Apply the search
+            table.columns().eq( 0 ).each( function ( colIdx ) {
+                $( 'input', table.column( colIdx ).footer() ).on( 'keyup change', function () {
+                    table.column( colIdx ).search( this.value ).draw();
+                });
+            });
+        });
+    </script>
+    <!--内嵌css代码-->
+    <style type='text/css'>
+        tfoot input {
+        width: 100%;
+        padding: 3px;
+        box-sizing: border-box;
+        }
+    </style>
+    
+    <!--高亮鼠标停留的行和列-->
+    <script type="text/javascript">   
+        $(document).ready(function() {
+            var lastIdx = null;
+            var table = $('#event').DataTable();
+            $('#event tbody')
+                .on( 'mouseover', 'td', function () {
+                    var colIdx = table.cell(this).index().column;
+                    if ( colIdx !== lastIdx ) {
+                        $( table.cells().nodes() ).removeClass( 'highlight' );
+                        $( table.column( colIdx ).nodes() ).addClass( 'highlight' );
+                    }
+                } )
+                .on( 'mouseleave', function () {
+                    $( table.cells().nodes() ).removeClass( 'highlight' );
+                } );
+        } );
+    </script>
+    <style type="text/css">
+        td.highlight {
+            background-color: yellow!important;
+        }
+    </style>
+
+{% include "foot.html" %}
+<!--以下是本页适用的脚本-->
+<script type="text/javascript">
+  function filterGlobal () {
+  $('#example').DataTable().search(
+      $('#global_filter').val(),
+      $('#global_regex').prop('checked'),
+      $('#global_smart').prop('checked')
+  ).draw();
+  }
+
+  function filterColumn ( i ) {
+  $('#example').DataTable().column( i ).search(
+      $('#col'+i+'_filter').val(),
+      $('#col'+i+'_regex').prop('checked'),
+      $('#col'+i+'_smart').prop('checked')
+  ).draw();
+  }
+  $(document).ready(function() {
+     $('#event').DataTable({
+         'scrollX':true,
+         'scrollY':200,
+         searching: true,
+     });
+     $('input.global_filter').on( 'keyup click', function () {
+      filterGlobal();
+    } );
+
+     $('input.column_filter').on( 'keyup click', function () {
+      filterColumn( $(this).parents('tr').attr('data-column') );
+    } );});
+  </script>
+<!-- 脚本部分用来处理表格样式等内容, 整个datatables用两个部分来控制, table部分控制数据和交互, script部分控制展试, 分页和搜索等功能-->
+
+<script type="text/javascript">
+    $('.ui.button').click(function(){
+
+        $('.ui.sidebar').sidebar('toggle');
+    });
+</script>
+  
